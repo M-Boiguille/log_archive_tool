@@ -14,12 +14,12 @@ Not mandatory:
 ./log-archive <log-directory> [output-directory]
 ```
 - **log-directory**: Directory containing the logs to compress.
-- **output-directory** (optional): Destination for the archive. Defaults to the current directory.
+- **output-directory** (optional): Destination for the archive. Defaults /var/log/.
 
 ### Examples
-1. Create an archive in the current directory:
+1. Create an archive in the /var/log directory:
    ```bash
-   ./log-archive /var/log
+   ./log-archive /my/program/logs/
    ```
 2. Create an archive in a specified directory:
    ```bash
