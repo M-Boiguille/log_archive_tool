@@ -1,0 +1,79 @@
+#!/bin/bash
+
+# Init necessary variables
+output_dir="/var/log/"
+is_dir=true
+
+# Help function
+help_function () {
+    exit_code=$1
+    printf "\t\t========= log-archive =========\n\n"
+    printf "\tThis program takes a log directory as an argument,\n"
+    printf "\tcompresses the logs into a tar.gz archive, and\n"
+    printf "\tstores the archive in the current directory or a specified output directory.\n\n"
+    printf "Usage:\n"
+    printf "\t./log-archive <log-directory> [output-directory]\n\n"
+    printf "Examples:\n"
+    printf "\t./log-archive /var/log\n"
+    printf "\t\tCreates an archive in the current directory.\n\n"
+    printf "\t./log-archive /var/log /tmp\n"
+    printf "\t\tCreates an archive in the /tmp directory.\n\n"
+    printf "Notes:\n"
+    printf "\t- The script generates a temporary file (filelist.txt) in the output directory.\n"
+    printf "\t- Ensure the output directory is writable.\n"
+    printf "\t- The temporary file is automatically deleted after the archive is created.\n\n"
+    exit $exit_code
+}
+
+# Provide help if needed
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    help_function 0
+fi
+
+# Check if no arguments are provided
+if [ $# -eq 0 ]; then
+    echo "Error: No argument provided."
+    help_function 1
+fi
+
+# Check if too many arguments are provided
+if [ $# -gt 2 ]; then
+    echo "Error: Too many arguments."
+    help_function 2
+fi
+
+# Check if the log directory is valid
+if ! [ -d "$1" ]; then
+    echo "Error: $1 is not a valid directory."
+    help_function 3
+fi
+
+# If an output directory is provided, set it
+if [ $# -eq 2 ]; then
+    if ! [ -d "$2" ]; then
+        echo "Error: $2 is not a valid directory."
+        help_function 4
+    fi
+    if ! [ -w "$2" ]; then
+        echo "Error: $2 is not writable."
+        help_function 5
+    fi
+	    # Ensure output directory has a trailing /
+    case "$2" in
+        */) output_dir="$2" ;;
+        *) output_dir="$2/" ;;
+    esac
+fi
+
+# Generate archive
+archive_name="${output_dir}logs_archive_$(date +"%Y%m%d_%H%M%S").tar.gz"
+filelist="${output_dir}filelist.txt"
+
+# Use filelist in the output directory
+find "$1" -type f > "$filelist" && \
+tar -zcf "$archive_name" -T "$filelist" && \
+echo "Archive created successfully: $archive_name" || \
+echo "Error: Failed to create archive."
+
+# Cleanup temporary file
+rm -f "$filelist"
